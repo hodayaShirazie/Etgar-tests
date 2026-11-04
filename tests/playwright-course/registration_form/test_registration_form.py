@@ -6,20 +6,22 @@ Hodaya Shirazie
 from playwright.sync_api import Page, expect
 from consts import PLAYWRIGHT_DOCS_URL, REGISTRATION_FORM
 import re
+from pathlib import Path
+from datetime import datetime
 
-GITHUB_FORM_URL = "https://github.com/yashago/hadasim-qa-pytest/blob/9bcef875b222092b4f32c3599b7773e5d1aca48b/tests/playwright/src/playwright_registration_form.html"
+GITHUB_FORM_URL = "https://github.com/yashago/hadasim-qa-pytest/blob/main/tests/playwright/src/playwright_registration_form.html"
 FILE_PATH = f"https://htmlpreview.github.io/?{GITHUB_FORM_URL}"
 
-def test_registration_form(page: Page):
+def test_registration_form(page: Page, request):
 
     page.goto(FILE_PATH)
     # printAccessibilityTree(page)
     # page.pause()
-
     fillInFullForm(page)
     validateResetForm(page)
     fillInFullForm(page)
     validateSubmitForm(page)
+    takeScreenshot(page, request)
 
 def test_header(page: Page):
     page.goto(FILE_PATH)
@@ -33,6 +35,10 @@ def test_header(page: Page):
     validateHelpLink(page)
 
     validatePlaywrightDocsLink(page)
+
+    # validateNativeDialog(page)
+
+    # validatePlaywrightGetDocs(page)
 
 def fillInFullForm(page):
 
@@ -80,8 +86,13 @@ def printAccessibilityTree(page):
 
 def fillInFirstName(page, firstName):
     #By role, preferred method
-    page.get_by_role("textbox", name="First name").fill(firstName)
-    
+    firstNameField = page.get_by_role("textbox", name="First name")
+    firstNameField.fill(firstName)
+
+    # screenshotsDir = Path(__file__).parent.parent / "Screenshots"
+    # firstNameField.screenshot(path=str(screenshotsDir / "firstNameField.png"))
+    # page.screenshot(path=str(screenshotsDir / "firstNameFieldFULL.png"),full_page=True)
+
     # #By label, preferred method
     # page.get_by_label("First name").fill("Doe")
 
@@ -178,7 +189,6 @@ def checkTermsAndConditions(page, isChecked):
     else:
         termsAndConditionsCheckbox.uncheck()
 
-
 def validateSubmitForm(page):
     submitButton = page.get_by_role("button", name="Submit registration")
 
@@ -197,8 +207,6 @@ def validateSubmitForm(page):
     expect(closeButton).to_be_visible()
     expect(closeButton).to_be_enabled()
 
-# This function replaces the "validatePreferencesLink" and "validateRegistrationLink" functions
-# since they share the same logic and can be generalized to work for any navigation link and section.
 def validateResetForm(page):
     fillInFirstName(page, "Hodaya")
 
@@ -217,30 +225,6 @@ def validateResetForm(page):
     expect(resetMessage).to_be_visible()
 
     expect(firstNameField).to_have_value("")
-
-# def validateRegistrationLink(page):
-#     registrationLink = page.get_by_role("link", name="Registration")
-#     expect(registrationLink).to_be_visible()
-#     expect(registrationLink).to_be_enabled()
-
-#     registrationLink.click()
-
-#     expect(page).to_have_url(re.compile(r"#registration$"))
-
-#     registrationSection = page.get_by_role("region", name="Registration details")
-#     expect(registrationSection).to_be_visible()
-
-# def validatePreferencesLink(page):
-    # preferencesLink = page.get_by_role("link", name="Preferences")
-    # expect(preferencesLink).to_be_visible()
-    # expect(preferencesLink).to_be_enabled()
-
-    # preferencesLink.click()
-
-    # expect(page).to_have_url(re.compile(r"#preferences$"))
-
-    # preferencesSection = page.get_by_role("region", name="Preferences")
-    # expect(preferencesSection).to_be_visible()
 
 def validateNavigationLink(page, linkName, sectionRole, sectionName):
     navigationLink = page.get_by_role("link", name=linkName)
@@ -282,3 +266,61 @@ def validatePlaywrightDocsLink(page):
     newTab = newPage.value
 
     expect(newTab).to_have_url(PLAYWRIGHT_DOCS_URL)
+
+def takeScreenshot(page, request):
+    screenshotsDir = Path(__file__).parent.parent / "Screenshots"
+    screenshotsDir.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    fileName = f"{request.node.name}_{timestamp}.png"
+
+    screenshotPath = screenshotsDir / fileName
+    page.screenshot(path=str(screenshotPath), full_page=True)
+
+def validateNativeDialog(page):
+    def handle_dialog(dialog):
+        print("Dialog message:", dialog.message)
+
+        page.pause()  
+
+        dialog.accept()
+
+    page.once("dialog", handle_dialog)
+    page.get_by_role("link", name="Native confirm dialog").click()
+
+    # page.once("dialog", lambda dialog: dialog.dismiss())
+    # page.get_by_role("link", name="Native confirm dialog").click()
+
+def validatePlaywrightGetDocs(page):  
+    # page.pause()    
+    with page.expect_popup() as popup_info:
+        page.get_by_role("link", name="Playwright documentation").click()
+        popup = popup_info.value
+    
+    expect(popup).to_have_url("https://playwright.dev/")
+
+    expect(popup.get_by_role("heading", name="Playwright CLI")).to_be_visible()
+
+def testIFrame(page):
+    page.goto(FILE_PATH)
+
+    googleMapsLink = page.get_by_role("link", name="Google Map")
+    expect(googleMapsLink).to_be_visible()
+    googleMapsLink.click()
+
+    googleMapsFrame = page.frame_locator(
+        'iframe[title="Google Map showing Tel Aviv, Israel"]'
+    )
+
+    expect(googleMapsFrame.locator("body")).to_be_visible()
+
+    with page.expect_popup() as popup_info:
+        page.evaluate("""
+            window.open(
+                'https://www.google.com/maps?q=Tel+Aviv,+Israel',
+                '_blank'
+            )
+        """)
+
+    popup = popup_info.value
+    expect(popup).to_have_url(re.compile(r"https://www.google.com/maps"))
