@@ -1,5 +1,6 @@
 import re
 from playwright.sync_api import Page, expect
+from pathlib import Path
 
 """
     A few exercises to try:
@@ -20,7 +21,9 @@ from playwright.sync_api import Page, expect
 
 def test_get_started_navigation(page: Page):
 
-    page.goto("file:///C:/Users/etgar_atida/test_practice/tests/playwright-course/playwright-selectors.html")
+    # page.goto("file:///C:/Users/etgar_atida/test_practice/tests/playwright-course/playwright-selectors.html")
+    html_path = Path(__file__).parent / "playwright-selectors.html"
+    page.goto(html_path.as_uri())
 
     # 1. Find the button using its role and name
     page.get_by_role("button", name="Open Details").click()
