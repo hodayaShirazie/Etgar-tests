@@ -5,6 +5,7 @@ Hodaya Shirazie
 """
 
 from playwright.sync_api import Page
+import pytest
 from pages.registrantion_page import RegistrationPage
 from pathlib import Path
 from datetime import datetime
@@ -26,7 +27,8 @@ def test_registration_form(page: Page, request):
 
     takeScreenshot(page, request)
 
-
+@pytest.mark.smoke
+@pytest.mark.regression
 def test_header(page: Page):
 
     registration = RegistrationPage(page)

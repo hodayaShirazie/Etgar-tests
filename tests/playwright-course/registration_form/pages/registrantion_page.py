@@ -5,7 +5,7 @@ Hodaya Shirazie
 """
 
 from playwright.sync_api import Page, expect
-from consts import PLAYWRIGHT_DOCS_URL, REGISTRATION_FORM
+from utilities.consts import PLAYWRIGHT_DOCS_URL, REGISTRATION_FORM
 import re
 
 
