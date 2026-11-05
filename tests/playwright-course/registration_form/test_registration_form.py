@@ -7,7 +7,7 @@ from playwright.sync_api import Page, expect
 from utilities.consts import PLAYWRIGHT_DOCS_URL, REGISTRATION_FORM
 import re
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime 
 
 GITHUB_FORM_URL = "https://github.com/yashago/hadasim-qa-pytest/blob/main/tests/playwright/src/playwright_registration_form.html"
 FILE_PATH = f"https://htmlpreview.github.io/?{GITHUB_FORM_URL}"
