@@ -10,6 +10,7 @@ import re
 
 @pytest.mark.smoke
 def test_gmail_login(page: Page, request):
+    
     sign_in = LoginPage(page)
     sign_in.open()
 
@@ -23,15 +24,9 @@ def test_gmail_login(page: Page, request):
     )
 
     google_login = google_login_page.GoogleLoginPage(login_page)
-    
-    # Enter email
-    google_login = google_login_page.GoogleLoginPage(login_page)
     google_login.enter_email(config.GMAIL_EMAIL)
     google_login.click_next()
 
-    # # Enter password
     # password = password_page.GooglePasswordPage(login_page)
-    # password.enter_password(config.GMAIL_PASSWORD)
+    # password.enter_password()
     # password.click_next()
-
-
