@@ -29,6 +29,9 @@ jobs:
         run: playwright install --with-deps chromium
 
       - name: Run tests
+        env:
+          GMAIL_EMAIL: ${{ secrets.GMAIL_EMAIL }}
+          GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
         run: pytest
 
       - name: Upload report and failure artifacts
